@@ -9,7 +9,7 @@ function InputTodo({ inputTodo, setInputTodo, createTodo }) {
           type="text"
           value={inputTodo}
           onChange={(e) => setInputTodo(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && createTodo()}
+          onPressEnter={createTodo}
         />
         <Button type="primary" icon={<PlusCircleFilled />} onClick={createTodo}>
           Add
