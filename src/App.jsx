@@ -31,7 +31,7 @@ function App() {
       id: Date.now(),
       text: inputTodo,
       isDonw: false,
-      datetime: dayjs().fromNow(),
+      datetime: dayjs().format("MM.DD.YYYY / hh:mm a"),
     };
 
     const updatedTodos = [newTodo, ...todos];
@@ -59,7 +59,11 @@ function App() {
   const updateTodo = () => {
     const updateTodos = todos.map((todo) =>
       todo.id === updateId
-        ? { ...todo, text: updateText, datetime: dayjs().fromNow() }
+        ? {
+            ...todo,
+            text: updateText,
+            datetime: dayjs().format("MM.DD.YYYY / hh:mm a"),
+          }
         : todo
     );
 
@@ -85,6 +89,7 @@ function App() {
     handleToggle,
     createTodo,
     setInputTodo,
+    inputTodo,
   };
 
   return (
