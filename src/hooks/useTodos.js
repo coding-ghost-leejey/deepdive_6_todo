@@ -1,14 +1,10 @@
-import { useEffect, useState } from "react";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-import "dayjs/locale/ko";
-dayjs.extend(relativeTime);
-dayjs.locale("ko");
+import { useEffect, useState, useCallback } from "react";
+import formatTodoDate from "../utils/dateHelper";
+import { getStTodos, setStTodos } from "../utils/storageHelper";
 
 function useTodos() {
   const [todos, setTodos] = useState(() => {
-    const getTodos = localStorage.getItem("stTodos");
-    return getTodos ? JSON.parse(getTodos) : [];
+    return getStTodos();
   });
   const [inputTodo, setInputTodo] = useState("");
   const [updateId, setUpdateId] = useState(null);
@@ -16,63 +12,61 @@ function useTodos() {
 
   // 이 부분을 일반함수로 만들어 호출해보기.
   useEffect(() => {
-    localStorage.setItem("stTodos", JSON.stringify(todos));
-    console.log("setItem 실행");
+    setStTodos(todos);
   }, [todos]);
 
-  const createTodo = () => {
+  const createTodo = useCallback(() => {
     if (!inputTodo.trim()) return;
     const newTodo = {
       id: Date.now(),
       text: inputTodo,
-      isDonw: false,
-      datetime: dayjs().format("MM.DD.YYYY / hh:mm a"),
+      isDone: false,
+      datetime: formatTodoDate(),
     };
 
-    const updatedTodos = [newTodo, ...todos];
-    setTodos(updatedTodos);
+    setTodos((prevTodos) => [newTodo, ...prevTodos]);
     setInputTodo("");
-    console.log("todos :", updatedTodos);
-  };
+  }, [inputTodo]);
 
-  const deleteTodo = (selectedId) => {
-    const updatedTodos = todos.filter((todo) => todo.id !== selectedId);
-    setTodos(updatedTodos);
-    console.log("todos :", updatedTodos);
-  };
+  const deleteTodo = useCallback((selectedId) => {
+    setTodos((prevTodos) => {
+      const updatedTodos = prevTodos.filter((todo) => todo.id !== selectedId);
+      return updatedTodos;
+    });
+  }, []);
 
-  const startUpdate = (selectedTodo) => {
+  const startUpdate = useCallback((selectedTodo) => {
     setUpdateText(selectedTodo.text);
     setUpdateId(selectedTodo.id);
-  };
+  }, []);
 
-  const cancelUpdate = () => {
+  const cancelUpdate = useCallback(() => {
     setUpdateText("");
     setUpdateId(null);
-  };
+  }, []);
 
-  const updateTodo = () => {
-    const updateTodos = todos.map((todo) =>
-      todo.id === updateId
-        ? {
-            ...todo,
-            text: updateText,
-            datetime: dayjs().format("MM.DD.YYYY / hh:mm a"),
-          }
-        : todo
+  const updateTodo = useCallback(() => {
+    setTodos((prevTodos) =>
+      prevTodos.map((todo) =>
+        todo.id === updateId
+          ? {
+              ...todo,
+              text: updateText,
+              datetime: formatTodoDate(),
+            }
+          : todo
+      )
     );
-
-    setTodos(updateTodos);
     setUpdateId(null);
-  };
+  }, [updateId, updateText]);
 
-  const handleToggle = (isDoneId) => {
-    const updateTodos = todos.map((todo) =>
-      todo.id === isDoneId ? { ...todo, isDone: !todo.isDone } : todo
+  const handleToggle = useCallback((isDoneId) => {
+    setTodos((prevTodos) =>
+      prevTodos.map((todo) =>
+        todo.id === isDoneId ? { ...todo, isDone: !todo.isDone } : todo
+      )
     );
-    setTodos(updateTodos);
-  };
-
+  }, []);
   return {
     todos,
     inputTodo,
